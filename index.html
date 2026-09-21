@@ -895,6 +895,69 @@
           .catch(err => console.log('PWA Service Worker registration failed:', err));
       });
     }
+    
+    // =========================================================================
+// إظهار رسالة تثبيت الـ PWA عند فتح الموقع
+// =========================================================================
+let deferredPrompt;
+const installBanner = document.getElementById('pwaInstallBanner');
+const installBtn = document.getElementById('pwaInstallBtn');
+const dismissBtn = document.getElementById('pwaDismissBtn');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  // منع المتصفح من إظهار التنبيه التلقائي المكتوم
+  e.preventDefault();
+  deferredPrompt = e;
+  
+  // إظهار شريط التثبيت الخاص بنا
+  if (installBanner) {
+    installBanner.style.display = 'flex';
+  }
+});
+
+if (installBtn) {
+  installBtn.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    
+    // إظهار نافذة التثبيت الخاصة بالمتصفح
+    deferredPrompt.prompt();
+    
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(`نتيجة اختيار المستخدم: ${outcome}`);
+    
+    deferredPrompt = null;
+    installBanner.style.display = 'none';
+  });
+}
+
+if (dismissBtn) {
+  dismissBtn.addEventListener('click', () => {
+    installBanner.style.display = 'none';
+  });
+}
+
+// إخفاء الشريط تلقائياً إذا كان التطبيق مثبت بالفعل
+window.addEventListener('appinstalled', () => {
+  if (installBanner) installBanner.style.display = 'none';
+  console.log('تم تثبيت تطبيق سكني بنجاح');
+});
+
   </script>
+  
+  <!-- شريط دعوة تثبيت التطبيق -->
+<div id="pwaInstallBanner" style="display: none; position: fixed; bottom: 20px; right: 20px; left: 20px; background: #0f766e; color: #fff; padding: 14px 18px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); z-index: 9999; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+  <div style="display: flex; align-items: center; gap: 10px;">
+    <img src="icon-512.png" alt="سكني" style="width: 38px; height: 38px; border-radius: 8px;">
+    <div>
+      <strong style="display: block; font-size: 13px;">تثبيت تطبيق سكني</strong>
+      <small style="font-size: 10px; opacity: 0.9;">أضف التطبيق للشاشة الرئيسية للوصول السريع</small>
+    </div>
+  </div>
+  <div style="display: flex; gap: 8px;">
+    <button id="pwaInstallBtn" style="background: #fff; color: #0f766e; font-weight: 700; padding: 8px 14px; border-radius: 8px; font-size: 11px;">تثبيت الآن</button>
+    <button id="pwaDismissBtn" style="background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 8px 12px; border-radius: 8px; font-size: 11px;">لاحقاً</button>
+  </div>
+</div>
+
 </body>
 </html>
